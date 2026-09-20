@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MedReminder</title>
+<style>
+:root{
+  --bg:#f4f5f9;--sf:#ffffff;--tx:#111827;--tx2:#6b7280;--bd:#e5e7eb;
+  --pu:#7C5CBF;--pr:#2783DE;--pu-l:rgba(124,92,191,.1);
+  --gr:#46A171;--gr-l:rgba(70,161,113,.1);
+  --or:#D5803B;--or-l:rgba(213,128,59,.1);
+  --rd:#E56458;--rd-l:rgba(229,100,88,.1);
+  --nav:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);max-width:430px;margin:0 auto;min-height:100dvh;position:relative;overflow-x:hidden;}
+
+/* ====== AUTH SCREEN ====== */
+#authWrap{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;background:linear-gradient(160deg,#0f0c29,#1a1a3e,#24243e);overflow-y:auto;}
+.ah{padding:52px 28px 28px;text-align:center;flex-shrink:0;}
+.ah-logo{font-size:44px;}
+.ah-title{font-size:30px;font-weight:900;color:#fff;letter-spacing:-.5px;}
+.ah-title span{color:var(--pr);}
+.ah-sub{font-size:13px;color:rgba(255,255,255,.55);margin-top:6px;line-height:1.5;}
+.ab{background:var(--sf);border-radius:28px 28px 0 0;flex:1;padding:28px 22px 40px;display:flex;flex-direction:column;min-height:520px;}
+.ab-title{font-size:21px;font-weight:800;margin-bottom:3px;}
+.ab-sub{font-size:13px;color:var(--tx2);margin-bottom:20px;}
+.atabs{display:flex;gap:6px;background:var(--bg);border-radius:14px;padding:4px;margin-bottom:20px;}
+.atab{flex:1;padding:10px 4px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--tx2);background:transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.atab.on{background:var(--sf);color:var(--pu);box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.apanel{display:none;flex-direction:column;gap:12px;}
+.apanel.on{display:flex;animation:fi .25s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.albl{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.ainp{width:100%;padding:14px 16px;border:1.5px solid var(--bd);border-radius:13px;font-size:15px;color:var(--tx);background:var(--bg);outline:none;font-family:inherit;transition:border-color .2s;}
+.ainp:focus{border-color:var(--pu);}
+.ainp.bad{border-color:var(--rd);}
+.prow{display:flex;gap:8px;}
+.ccsel{padding:14px 8px;border:1.5px solid var(--bd);border-radius:13px;font-size:13px;color:var(--tx);background:var(--bg);outline:none;font-family:inherit;cursor:pointer;width:90px;flex-shrink:0;}
+.abtn{width:100%;padding:15px;background:linear-gradient(135deg,var(--pu),var(--pr));color:#fff;border:none;border-radius:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;}
+.abtn:active{opacity:.85;}
+.abtn.sec{background:var(--bg);color:var(--pu);border:1.5px solid var(--pu);margin-top:0;}
+.aerr{font-size:12px;color:var(--rd);font-weight:600;min-height:14px;}
+.otp-sent-badge{background:rgba(70,161,113,.12);border:1px solid rgba(70,161,113,.3);border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--gr);display:flex;align-items:center;gap:8px;}
+.otp-demo-box{background:linear-gradient(135deg,rgba(124,92,191,.08),rgba(39,131,222,.08));border:1.5px dashed rgba(124,92,191,.35);border-radius:13px;padding:14px;text-align:center;}
+.otp-demo-lbl{font-size:11px;font-weight:700;color:var(--pu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.otp-demo-code{font-size:32px;font-weight:900;letter-spacing:10px;color:var(--tx);}
+.otp-demo-note{font-size:11px;color:var(--tx2);margin-top:4px;}
+.otp-row{display:flex;gap:7px;justify-content:center;}
+.obox{width:44px;height:52px;border:1.5px solid var(--bd);border-radius:11px;font-size:22px;font-weight:800;text-align:center;color:var(--tx);background:var(--bg);outline:none;font-family:inherit;transition:border-color .2s;caret-color:transparent;}
+.obox:focus{border-color:var(--pu);}
+.obox.ok{border-color:var(--gr);color:var(--gr);}
+.otimer{font-size:12px;color:var(--tx2);text-align:center;}
+.otimer b{color:var(--pu);cursor:pointer;}
+
+/* ====== MAIN APP ====== */
+#appWrap{display:none;min-height:100dvh;padding-bottom:var(--nav);}
+.header{background:linear-gradient(135deg,var(--pu),var(--pr));padding:16px 18px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:80;}
+.hdr-left .app-name{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.3px;}
+.hdr-left .app-name span{color:rgba(255,255,255,.75);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.hdr-date{font-size:12px;color:rgba(255,255,255,.8);font-weight:600;}
+.prof-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 10px 4px 4px;cursor:pointer;transition:background .15s;}
+.prof-chip:active{background:rgba(255,255,255,.25);}
+.pav{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.3);font-size:13px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;}
+.pname{font-size:12px;font-weight:700;color:rgba(255,255,255,.9);max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.page{display:none;padding:16px 14px;animation:fi .2s ease;}
+.page.on{display:block;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--sf);border-top:1px solid var(--bd);display:flex;height:var(--nav);z-index:80;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--tx2);font-size:10px;font-weight:600;border:none;background:none;font-family:inherit;transition:color .15s;}
+.nav-item.on{color:var(--pu);}
+.nav-item svg{width:22px;height:22px;fill:currentColor;}
+.fab{position:fixed;bottom:calc(var(--nav)+14px);right:16px;width:50px;height:50px;background:linear-gradient(135deg,var(--pu),var(--pr));border-radius:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,92,191,.4);z-index:79;transition:transform .15s;}
+.fab:active{transform:scale(.92);}
+.fab svg{width:24px;height:24px;fill:white;}
+
+/* ====== CARDS ====== */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.stat-card{background:var(--sf);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.stat-val{font-size:24px;font-weight:900;}
+.stat-lbl{font-size:11px;color:var(--tx2);margin-top:2px;font-weight:600;}
+.stat-card.blue .stat-val{color:var(--pr);}
+.stat-card.green .stat-val{color:var(--gr);}
+.stat-card.orange .stat-val{color:var(--or);}
+.emergency-card{background:linear-gradient(135deg,#fff1f0,#fff);border:1px solid rgba(229,100,88,.25);border-radius:16px;padding:14px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.emergency-title{font-size:14px;font-weight:800;color:var(--rd);}
+.emergency-sub{font-size:11px;color:var(--tx2);margin-top:3px;margin-bottom:10px;}
+.emergency-actions{display:flex;gap:8px;}
+.emergency-btn{flex:1;padding:10px 8px;border-radius:11px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;}
+.emergency-btn.call{background:var(--rd);border:1.5px solid var(--rd);color:#fff;}
+.emergency-btn.hospital{background:var(--rd-l);border:1.5px solid var(--rd);color:var(--rd);}
+.hospital-panel{background:var(--sf);border-radius:16px;padding:14px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.hospital-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.hospital-title{font-size:14px;font-weight:800;}
+.hospital-list{display:grid;gap:8px;margin-top:10px;}
+.hospital-item{background:var(--bg);border-radius:12px;padding:10px 12px;}
+.hospital-name{font-size:13px;font-weight:800;}
+.hospital-meta{font-size:11px;color:var(--tx2);margin-top:3px;line-height:1.45;}
+.hospital-map-btn{padding:7px 10px;background:var(--pu-l);color:var(--pu);border:1px solid var(--pu);border-radius:9px;font:700 11px inherit;cursor:pointer;}
+.staff-panel{background:var(--sf);border-radius:16px;padding:14px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.staff-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.staff-title{font-size:14px;font-weight:800;}
+.staff-sub{font-size:11px;color:var(--tx2);margin-top:3px;margin-bottom:10px;}
+.staff-list{display:grid;gap:10px;}
+.staff-item{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:14px;padding:10px 12px;}
+.staff-av{width:42px;height:42px;border-radius:12px;background:var(--pu-l);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.staff-name{font-size:13px;font-weight:800;}
+.staff-meta{font-size:11px;color:var(--tx2);margin-top:2px;line-height:1.4;}
+.staff-fee{font-size:11px;font-weight:700;color:var(--gr);margin-top:2px;}
+.staff-book-btn{padding:8px 12px;background:var(--pu);color:#fff;border:none;border-radius:10px;font:800 11px inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.visit-card{background:var(--sf);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.visit-row1{display:flex;justify-content:space-between;align-items:flex-start;}
+.visit-title{font-size:15px;font-weight:700;}
+.visit-sub{font-size:12px;color:var(--tx2);margin-top:4px;}
+.visit-loc{font-size:12px;color:var(--tx2);margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+.tools-card{background:var(--sf);border-radius:16px;padding:14px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.tools-title{font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tool-btn{padding:10px 8px;border:1.5px solid var(--bd);border-radius:11px;background:var(--bg);color:var(--tx);font:700 12px inherit;cursor:pointer;}
+.tool-btn:active{background:var(--pu-l);border-color:var(--pu);color:var(--pu);}
+.stock-low{color:var(--rd);font-weight:800;}
+.stock-ok{color:var(--gr);font-weight:700;}
+.sec-title{font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.med-card{background:var(--sf);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.med-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.med-dot.blue{background:var(--pr);}
+.med-dot.green{background:var(--gr);}
+.med-dot.orange{background:var(--or);}
+.med-dot.red{background:var(--rd);}
+.sched-card{background:var(--sf);border-radius:16px;padding:14px 16px;display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:10px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.sched-time{text-align:center;}
+.sched-hr{font-size:16px;font-weight:900;color:var(--pu);line-height:1;}
+.sched-ampm{font-size:10px;color:var(--tx2);font-weight:600;}
+.sched-name{font-size:15px;font-weight:700;}
+.sched-info{font-size:12px;color:var(--tx2);margin-top:2px;}
+.mark-btn{padding:8px 14px;border:1.5px solid var(--pu);border-radius:10px;font-size:12px;font-weight:700;color:var(--pu);background:var(--pu-l);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;}
+.mark-btn.done{background:var(--gr-l);border-color:var(--gr);color:var(--gr);}
+.appt-card{background:var(--sf);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.appt-row1{display:flex;justify-content:space-between;align-items:flex-start;}
+.appt-title{font-size:15px;font-weight:700;}
+.appt-date-badge{background:var(--pu);color:#fff;border-radius:10px;padding:4px 10px;font-size:12px;font-weight:800;text-align:center;min-width:44px;}
+.appt-sub{font-size:12px;color:var(--tx2);margin-top:4px;}
+.appt-loc{font-size:12px;color:var(--tx2);margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge.upcoming{background:var(--pu-l);color:var(--pu);}
+.badge.completed{background:var(--gr-l);color:var(--gr);}
+.empty-state{text-align:center;padding:40px 20px;color:var(--tx2);}
+.empty-icon{font-size:44px;margin-bottom:10px;}
+.empty-txt{font-size:14px;line-height:1.5;}
+
+/* ====== MODALS ====== */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-bg.on{opacity:1;pointer-events:all;}
+.modal{background:var(--sf);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:22px 20px 32px;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.2,.64,1);max-height:90vh;overflow-y:auto;}
+.modal-bg.on .modal{transform:none;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:18px;}
+.field{margin-bottom:14px;}
+.flbl{font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.finp{width:100%;padding:12px 14px;border:1.5px solid var(--bd);border-radius:12px;font-size:14px;color:var(--tx);background:var(--bg);outline:none;font-family:inherit;}
+.finp:focus{border-color:var(--pu);}
+select.finp{cursor:pointer;}
+.frow{display:flex;gap:8px;}
+.time-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.tc{padding:7px 14px;border:1.5px solid var(--bd);border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--tx2);background:transparent;transition:all .15s;font-family:inherit;}
+.tc.on{background:var(--pu);border-color:var(--pu);color:#fff;}
+.save-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--pu),var(--pr));color:#fff;border:none;border-radius:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:8px;}
+.del-btn{width:100%;padding:12px;background:var(--rd-l);color:var(--rd);border:1.5px solid var(--rd);border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;}
+
+/* ====== ANALYZE TAB ====== */
+.analyze-hero{background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:18px;padding:18px;margin-bottom:14px;}
+.az-title{font-size:17px;font-weight:800;color:#fff;margin-bottom:4px;}
+.az-sub{font-size:12px;color:rgba(255,255,255,.55);margin-bottom:14px;}
+.upload-wrap{background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.2);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:background .15s;}
+.upload-wrap:active{background:rgba(255,255,255,.1);}
+.upload-icon{font-size:32px;margin-bottom:6px;}
+.upload-lbl{font-size:13px;font-weight:700;color:rgba(255,255,255,.8);}
+.upload-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:3px;}
+.up-preview{display:none;margin-top:12px;}
+.up-preview img{width:100%;border-radius:12px;max-height:200px;object-fit:cover;border:1px solid rgba(255,255,255,.1);}
+.ocr-status{margin-top:10px;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;display:none;}
+.ocr-status.loading{background:rgba(39,131,222,.12);color:var(--pr);display:block;}
+.ocr-status.ok{background:rgba(70,161,113,.12);color:var(--gr);display:block;}
+.ocr-status.warn{background:rgba(213,128,59,.12);color:var(--or);display:block;}
+.ocr-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--pu),var(--pr));color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;}
+.ocr-btn:disabled{opacity:.5;cursor:not-allowed;}
+.az-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;scrollbar-width:none;}
+.az-tabs::-webkit-scrollbar{display:none;}
+.azt{padding:8px 14px;background:var(--sf);border-radius:20px;font-size:12px;font-weight:700;color:var(--tx2);border:1.5px solid var(--bd);cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .15s;flex-shrink:0;}
+.azt.on{background:var(--pu);border-color:var(--pu);color:#fff;}
+.az-panel{display:none;}
+.az-panel.on{display:block;animation:fi .2s ease;}
+.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.lab-item{background:var(--sf);border-radius:14px;padding:12px;}
+.lab-lbl{font-size:11px;color:var(--tx2);font-weight:600;margin-bottom:6px;}
+.lab-inp{width:100%;padding:8px 10px;border:1.5px solid var(--bd);border-radius:10px;font-size:15px;font-weight:700;color:var(--tx);background:var(--bg);outline:none;font-family:inherit;text-align:center;}
+.lab-inp:focus{border-color:var(--pu);}
+.lab-unit{font-size:10px;color:var(--tx2);text-align:center;margin-top:3px;}
+.az-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--pu),var(--pr));color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin:14px 0 8px;}
+.result-card{background:var(--sf);border-radius:16px;padding:16px;margin-bottom:10px;border-left:4px solid var(--gr);}
+.result-card.warn{border-left-color:var(--or);}
+.result-card.danger{border-left-color:var(--rd);}
+.rc-title{font-size:15px;font-weight:800;margin-bottom:4px;}
+.rc-status{font-size:13px;font-weight:600;margin-bottom:6px;}
+.rc-status.ok{color:var(--gr);}
+.rc-status.warn{color:var(--or);}
+.rc-status.bad{color:var(--rd);}
+.rc-med{font-size:12px;color:var(--tx2);margin-top:4px;}
+.add-rem-btn{margin-top:10px;padding:8px 14px;background:var(--pu-l);color:var(--pu);border:1.5px solid var(--pu);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* ====== CHATBOT ====== */
+.bot-fab{position:fixed;bottom:calc(var(--nav)+14px);left:16px;width:50px;height:50px;background:linear-gradient(135deg,var(--pu),var(--pr));border-radius:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,92,191,.4);z-index:1001;}
+.bot-fab svg{width:24px;height:24px;fill:white;}
+.bot-badge{position:absolute;top:-5px;right:-5px;width:14px;height:14px;background:var(--rd);border-radius:50%;border:2px solid var(--sf);display:none;}
+.bot-badge.on{display:block;}
+.chat-wrap{position:fixed;inset:0;z-index:1100;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s;}
+.chat-wrap.on{opacity:1;pointer-events:all;}
+.chat-panel{background:var(--sf);border-radius:24px 24px 0 0;width:100%;max-width:430px;height:88vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.2,.64,1);overflow:hidden;}
+.chat-wrap.on .chat-panel{transform:none;}
+.chat-hdr{background:linear-gradient(135deg,var(--pu),var(--pr));padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.chat-av{width:40px;height:40px;background:rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.chat-info .cn{font-size:15px;font-weight:800;color:#fff;}
+.chat-info .cs{font-size:11px;color:rgba(255,255,255,.7);margin-top:1px;}
+.chat-x{width:32px;height:32px;background:rgba(255,255,255,.15);border:none;border-radius:10px;font-size:16px;color:#fff;cursor:pointer;margin-left:auto;display:flex;align-items:center;justify-content:center;}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.msg{max-width:82%;display:flex;flex-direction:column;gap:3px;animation:fi .2s ease;}
+.msg.b{align-self:flex-start;}
+.msg.u{align-self:flex-end;}
+.mbub{padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;}
+.msg.b .mbub{background:var(--bg);border:1px solid var(--bd);border-bottom-left-radius:4px;}
+.msg.u .mbub{background:linear-gradient(135deg,var(--pu),var(--pr));color:#fff;border-bottom-right-radius:4px;}
+.mtime{font-size:10px;color:var(--tx2);padding:0 2px;}
+.msg.u .mtime{text-align:right;}
+.typing{align-self:flex-start;display:none;}
+.typing.on{display:flex;}
+.tbub{background:var(--bg);border:1px solid var(--bd);border-radius:16px;border-bottom-left-radius:4px;padding:12px 14px;display:flex;gap:5px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--tx2);animation:bl 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s;}
+.dot:nth-child(3){animation-delay:.4s;}
+@keyframes bl{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.qbtns{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 8px;flex-shrink:0;}
+.qb{padding:7px 12px;background:var(--pu-l);border:1.5px solid var(--pu);border-radius:20px;font-size:12px;font-weight:600;color:var(--pu);cursor:pointer;white-space:nowrap;font-family:inherit;}
+.qb:active{background:var(--pu);color:#fff;}
+.chat-inp-row{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--bd);flex-shrink:0;background:var(--sf);}
+.chat-inp{flex:1;padding:11px 14px;border:1.5px solid var(--bd);border-radius:20px;font-size:14px;color:var(--tx);background:var(--bg);outline:none;font-family:inherit;}
+.chat-inp:focus{border-color:var(--pu);}
+.chat-send{width:42px;height:42px;background:linear-gradient(135deg,var(--pu),var(--pr));border:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-send svg{width:18px;height:18px;fill:#fff;}
+
+/* ====== PROFILE MODAL ====== */
+.pm-wrap{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.pm-wrap.on{opacity:1;pointer-events:all;}
+.pm-sheet{background:var(--sf);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:24px 20px 36px;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.2,.64,1);}
+.pm-wrap.on .pm-sheet{transform:none;}
+.pm-av{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--pu),var(--pr));font-size:26px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.pm-name{font-size:19px;font-weight:800;text-align:center;}
+.pm-id{font-size:13px;color:var(--tx2);text-align:center;margin-top:2px;margin-bottom:18px;}
+.pm-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.pm-s{background:var(--bg);border-radius:12px;padding:12px 6px;text-align:center;}
+.pm-sv{font-size:20px;font-weight:800;color:var(--pu);}
+.pm-sl{font-size:11px;color:var(--tx2);margin-top:2px;}
+.pm-row{display:flex;align-items:center;gap:12px;padding:14px 14px;border-radius:14px;border:none;width:100%;text-align:left;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--tx);margin-bottom:8px;}
+.pm-row.danger{background:var(--rd-l);color:var(--rd);}
+
+/* ====== TOAST ====== */
+.ainp[type=number]{-moz-appearance:textfield;}
+.ainp[type=number]::-webkit-inner-spin-button,.ainp[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.otp-copy-btn{display:block;width:100%;padding:8px;background:var(--pu-l);color:var(--pu);border:1.5px solid var(--pu);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
+.toast{position:fixed;bottom:calc(var(--nav)+16px);left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:900;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:14px;height:14px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="authWrap">
+  <div class="ah">
+    <div class="ah-logo">&#128138;</div>
+    <div class="ah-title">Med<span>Reminder</span></div>
+    <div class="ah-sub">Your personal health companion.<br>Sign in to save your medicines &amp; reports.</div>
+  </div>
+  <div class="ab">
+    <div id="authForm">
+      <div class="ab-title">Welcome! &#128075;</div>
+      <div class="ab-sub">Sign up or log in to get started.</div>
+      <div class="atabs">
+        <button class="atab" id="tGmail" onclick="switchTab('gmail')">&#128140; Gmail</button>
+        <button class="atab on" id="tMobile" onclick="switchTab('mobile')">&#128241; Mobile number</button>
+      </div>
+      <!-- Gmail panel -->
+      <div class="apanel" id="pGmail">
+        <div id="gs1">
+          <div class="albl">Gmail Address</div>
+          <input class="ainp" id="gEmail" type="email" placeholder="you@gmail.com" oninput="clearErr('gErr')" />
+          <div class="aerr" id="gErr"></div>
+          <button class="abtn" onclick="sendOtp('gmail')">&#9992;&#65039; Send OTP to Gmail</button>
+          <button class="abtn sec" onclick="switchTab('mobile')">&#128241; Use mobile number instead</button>
+        </div>
+        <div id="gs2" style="display:none;flex-direction:column;gap:11px">
+          <div class="otp-sent-badge">&#9993;&#65039; OTP sent to <b id="gSentTo" style="margin-left:4px"></b></div>
+          <div class="otp-demo-box">
+            <div class="otp-demo-lbl">&#128272; Your OTP (Demo)</div>
+            <div class="otp-demo-code" id="gOtpShow"></div>
+            <div class="otp-demo-note">In production this goes to your inbox</div>
+          </div>
+          <div class="albl">Enter 6-Digit OTP</div>
+          <input class="ainp" id="gOtpInp" type="number" placeholder="Enter 6-digit OTP" maxlength="6" style="font-size:24px;font-weight:800;letter-spacing:6px;text-align:center" oninput="this.value=this.value.slice(0,6)" />
+          <div class="otimer">Expires in <b id="gTimer">59</b>s &nbsp;&#183;&nbsp; <b onclick="sendOtp('gmail',true)" style="cursor:pointer">Resend</b></div>
+          <div class="aerr" id="gOtpErr"></div>
+          <button class="abtn" onclick="verifyOtp('gmail')">&#10003; Verify &amp; Continue</button>
+          <button class="abtn sec" onclick="backStep('gmail')">&#8592; Change Email</button>
+        </div>
+      </div>
+      <!-- Mobile panel -->
+      <div class="apanel on" id="pMobile">
+        <div id="ms1">
+          <div class="albl">Mobile Number</div>
+          <div class="prow">
+            <select class="ccsel" id="cc">
+              <option>+91</option><option>+1</option><option>+44</option><option>+61</option><option>+971</option>
+            </select>
+            <input class="ainp" id="mPhone" type="tel" placeholder="9876543210" maxlength="12" oninput="clearErr('mErr')" style="flex:1" />
+          </div>
+          <div class="aerr" id="mErr"></div>
+          <button class="abtn" onclick="sendOtp('mobile')">&#9992;&#65039; Send OTP via SMS</button>
+          <button class="abtn sec" onclick="switchTab('gmail')">&#128140; Use Gmail instead</button>
+        </div>
+        <div id="ms2" style="display:none;flex-direction:column;gap:11px">
+          <div class="otp-sent-badge">&#128241; OTP sent to <b id="mSentTo" style="margin-left:4px"></b></div>
+          <div class="otp-demo-box">
+            <div class="otp-demo-lbl">&#128272; Your OTP (Demo)</div>
+            <div class="otp-demo-code" id="mOtpShow"></div>
+            <div class="otp-demo-note">In production this goes via SMS</div>
+          </div>
+          <div class="albl">Enter 6-Digit OTP</div>
+          <input class="ainp" id="mOtpInp" type="number" placeholder="Enter 6-digit OTP" maxlength="6" style="font-size:24px;font-weight:800;letter-spacing:6px;text-align:center" oninput="this.value=this.value.slice(0,6)" />
+          <div class="otimer">Expires in <b id="mTimer">59</b>s &nbsp;&#183;&nbsp; <b onclick="sendOtp('mobile',true)" style="cursor:pointer">Resend</b></div>
+          <div class="aerr" id="mOtpErr"></div>
+          <button class="abtn" onclick="verifyOtp('mobile')">&#10003; Verify &amp; Continue</button>
+          <button class="abtn sec" onclick="backStep('mobile')">&#8592; Change Number</button>
+        </div>
+      </div>
+    </div>
+    <!-- Name setup -->
+    <div id="nameForm" style="display:none;flex-direction:column;gap:12px;text-align:center">
+      <div style="font-size:38px">&#127881;</div>
+      <div class="ab-title">You&apos;re in!</div>
+      <div class="ab-sub">What should we call you?</div>
+      <input class="ainp" id="uName" type="text" placeholder="Your full name" maxlength="32" />
+      <button class="abtn" onclick="finishSignup()">&#127968; Enter MedReminder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="appWrap">
+  <div class="header">
+    <div class="hdr-left">
+      <div class="app-name"><span>Med</span>Reminder</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-date" id="hdrDate"></div>
+      <div class="prof-chip" id="profChip" onclick="openProfile()">
+        <div class="pav" id="profAv">H</div>
+        <div class="pname" id="profName">User</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page on" id="pg-home">
+    <div class="stats-row">
+      <div class="stat-card blue"><div class="stat-val" id="s-meds">0</div><div class="stat-lbl">Active Meds</div></div>
+      <div class="stat-card green"><div class="stat-val" id="s-taken">0/0</div><div class="stat-lbl">Taken Today</div></div>
+      <div class="stat-card orange"><div class="stat-val" id="s-appts">0</div><div class="stat-lbl">Appointments</div></div>
+    </div>
+    <div class="emergency-card">
+      <div class="emergency-title">&#128680; Emergency help</div>
+      <div class="emergency-sub">For urgent medical emergencies, call an ambulance immediately.</div>
+      <div class="emergency-actions">
+        <button class="emergency-btn call" onclick="callAmbulance()">&#128222; Call 108</button>
+        <button class="emergency-btn hospital" onclick="findHospitals()">&#128205; Nearby hospitals</button>
+      </div>
+    </div>
+    <div class="hospital-panel">
+      <div class="hospital-head">
+        <div class="hospital-title">&#128205; Nearby hospitals &amp; doctors</div>
+        <button class="hospital-map-btn" onclick="findHospitals(true)">Open map</button>
+      </div>
+      <div class="hospital-meta">Find hospitals near your location and see common departments available there.</div>
+      <div class="hospital-list">
+        <div class="hospital-item"><div class="hospital-name">City General Hospital</div><div class="hospital-meta">&#128222; Emergency 24/7 &bull; General Physician &bull; Cardiologist &bull; Neurologist</div></div>
+        <div class="hospital-item"><div class="hospital-name">CarePlus Medical Center</div><div class="hospital-meta">&#128222; Appointments &bull; Pediatrician &bull; Gynecologist &bull; Dermatologist</div></div>
+        <div class="hospital-item"><div class="hospital-name">LifeLine Clinic</div><div class="hospital-meta">&#128222; Nearby clinic &bull; General Physician &bull; Orthopedic Doctor</div></div>
+      </div>
+    </div>
+    <div class="staff-panel">
+      <div class="staff-head">
+        <div class="staff-title">&#127968; Doctor &amp; nurse at home</div>
+      </div>
+      <div class="staff-sub">Book a verified medical professional to visit you for a checkup, vitals, or injections.</div>
+      <div class="staff-list" id="staffList"></div>
+    </div>
+    <div class="tools-card">
+      <div class="tools-title">Helpful tools</div>
+      <div class="tools-grid">
+        <button class="tool-btn" onclick="openHealthProfile()">&#128100; Emergency profile</button>
+        <button class="tool-btn" onclick="printDoctorSummary()">&#128424; Doctor summary</button>
+        <button class="tool-btn" onclick="speakSchedule()">&#128264; Read schedule</button>
+        <button class="tool-btn" onclick="toggleLanguage()">&#127760; <span id="langLabel">हिंदी</span></button>
+      </div>
+    </div>
+    <div class="sec-title">TODAY\'S SCHEDULE</div>
+    <div id="schedList"></div>
+    <div class="sec-title" style="margin-top:18px">UPCOMING APPOINTMENTS</div>
+    <div id="homeApptList"></div>
+    <div class="sec-title" style="margin-top:18px">UPCOMING HOME VISITS</div>
+    <div id="homeVisitList"></div>
+  </div>
+
+  <!-- MEDICINES -->
+  <div class="page" id="pg-meds">
+    <div class="sec-title">MY MEDICINES</div>
+    <div id="medList"></div>
+  </div>
+
+  <!-- APPOINTMENTS -->
+  <div class="page" id="pg-appts">
+    <div class="sec-title">APPOINTMENTS</div>
+    <div id="apptList"></div>
+  </div>
+
+  <!-- ANALYZE -->
+  <div class="page" id="pg-analyze">
+    <div class="analyze-hero">
+      <div class="az-title">&#129514; Report Analyzer</div>
+      <div class="az-sub">Upload your lab report for instant AI analysis</div>
+      <input type="file" id="reportFile" accept="image/*,.pdf" style="display:none" onchange="handleUpload(this)" />
+      <div class="upload-wrap" onclick="document.getElementById('reportFile').click()">
+        <div class="upload-icon">&#128247;</div>
+        <div class="upload-lbl">Upload Lab Report</div>
+        <div class="upload-sub">JPG, PNG or PDF &bull; Auto-reads values via OCR</div>
+      </div>
+      <div class="up-preview" id="upPreview">
+        <img id="upImg" />
+        <div class="ocr-status" id="ocrStatus"></div>
+        <button class="ocr-btn" id="ocrBtn" onclick="runOCR()" style="display:none">&#129514; Auto-Read Values</button>
+      </div>
+    </div>
+    <div class="az-tabs">
+      <button class="azt on" onclick="azTab('blood',this)">&#129656; Blood</button>
+      <button class="azt" onclick="azTab('hormones',this)">&#127807; Hormones</button>
+      <button class="azt" onclick="azTab('diabetes',this)">&#129440; Diabetes</button>
+      <button class="azt" onclick="azTab('lipid',this)">&#128137; Lipid</button>
+      <button class="azt" onclick="azTab('liver',this)">&#9889; Liver</button>
+    </div>
+    <div class="az-panel on" id="az-blood"><div class="lab-grid">
+      <div class="lab-item"><div class="lab-lbl">Vitamin B12</div><input class="lab-inp" id="t-b12" type="number" placeholder="—"><div class="lab-unit">pg/mL (187–883)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Vitamin D3</div><input class="lab-inp" id="t-vitd" type="number" placeholder="—"><div class="lab-unit">ng/mL (30–100)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Hemoglobin</div><input class="lab-inp" id="t-hb" type="number" placeholder="—"><div class="lab-unit">g/dL (12–17)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Ferritin</div><input class="lab-inp" id="t-iron" type="number" placeholder="—"><div class="lab-unit">ng/mL (12–300)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Calcium</div><input class="lab-inp" id="t-ca" type="number" placeholder="—"><div class="lab-unit">mg/dL (8.6–10.2)</div></div>
+    </div></div>
+    <div class="az-panel" id="az-hormones"><div class="lab-grid">
+      <div class="lab-item"><div class="lab-lbl">TSH</div><input class="lab-inp" id="t-tsh" type="number" placeholder="—"><div class="lab-unit">uIU/mL (0.35–4.94)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Free T4</div><input class="lab-inp" id="t-t4" type="number" placeholder="—"><div class="lab-unit">ng/dL (0.7–1.8)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Free T3</div><input class="lab-inp" id="t-t3" type="number" placeholder="—"><div class="lab-unit">pg/mL (1.8–4.6)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Insulin</div><input class="lab-inp" id="t-ins" type="number" placeholder="—"><div class="lab-unit">uU/mL (2–25)</div></div>
+    </div></div>
+    <div class="az-panel" id="az-diabetes"><div class="lab-grid">
+      <div class="lab-item"><div class="lab-lbl">Fasting Sugar</div><input class="lab-inp" id="t-fbs" type="number" placeholder="—"><div class="lab-unit">mg/dL (70–99)</div></div>
+      <div class="lab-item"><div class="lab-lbl">HbA1c</div><input class="lab-inp" id="t-hba1c" type="number" placeholder="—"><div class="lab-unit">% (&lt;5.7)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Post-meal Sugar</div><input class="lab-inp" id="t-ppbs" type="number" placeholder="—"><div class="lab-unit">mg/dL (&lt;140)</div></div>
+    </div></div>
+    <div class="az-panel" id="az-lipid"><div class="lab-grid">
+      <div class="lab-item"><div class="lab-lbl">Cholesterol</div><input class="lab-inp" id="t-chol" type="number" placeholder="—"><div class="lab-unit">mg/dL (&lt;200)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Triglycerides</div><input class="lab-inp" id="t-trig" type="number" placeholder="—"><div class="lab-unit">mg/dL (&lt;150)</div></div>
+      <div class="lab-item"><div class="lab-lbl">LDL</div><input class="lab-inp" id="t-ldl" type="number" placeholder="—"><div class="lab-unit">mg/dL (&lt;100)</div></div>
+      <div class="lab-item"><div class="lab-lbl">HDL</div><input class="lab-inp" id="t-hdl" type="number" placeholder="—"><div class="lab-unit">mg/dL (&gt;40)</div></div>
+    </div></div>
+    <div class="az-panel" id="az-liver"><div class="lab-grid">
+      <div class="lab-item"><div class="lab-lbl">SGOT/AST</div><input class="lab-inp" id="t-sgot" type="number" placeholder="—"><div class="lab-unit">U/L (5–40)</div></div>
+      <div class="lab-item"><div class="lab-lbl">SGPT/ALT</div><input class="lab-inp" id="t-sgpt" type="number" placeholder="—"><div class="lab-unit">U/L (7–56)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Bilirubin</div><input class="lab-inp" id="t-bili" type="number" placeholder="—"><div class="lab-unit">mg/dL (0.1–1.2)</div></div>
+      <div class="lab-item"><div class="lab-lbl">Creatinine</div><input class="lab-inp" id="t-creat" type="number" placeholder="—"><div class="lab-unit">mg/dL (0.6–1.2)</div></div>
+    </div></div>
+    <button class="az-btn" onclick="analyzeReport()">&#129514; Analyze My Report</button>
+    <div id="azResults"></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item on" data-p="home" onclick="gotoPage('home',this)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
+    </button>
+    <button class="nav-item" data-p="meds" onclick="gotoPage('meds',this)">
+      <svg viewBox="0 0 24 24"><path d="M6.5 10h-2v5h2v-5zm6 0h-2v5h2v-5zm8.5 7H2v2h19v-2zm-2.5-7h-2v5h2v-5zM11.5 1L2 6v2h19V6l-9.5-5z"/></svg>Medicines
+    </button>
+    <button class="nav-item" data-p="appts" onclick="gotoPage('appts',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>Appts
+    </button>
+    <button class="nav-item" data-p="analyze" onclick="gotoPage('analyze',this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Analyze
+    </button>
+  </nav>
+
+  <button class="fab" id="fabBtn" onclick="openModal('medModal')">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+  </button>
+</div>
+
+<!-- ===== MED MODAL ===== -->
+<div class="modal-bg" id="medModal">
+  <div class="modal">
+    <div class="modal-title" id="medModalTitle">Add Medicine</div>
+    <input type="hidden" id="medId">
+    <div class="field"><div class="flbl">Medicine Name</div><input class="finp" id="medName" placeholder="e.g. Paracetamol"></div>
+    <div class="field"><div class="flbl">Dosage</div><input class="finp" id="medDosage" placeholder="e.g. 500mg"></div>
+    <div class="field"><div class="flbl">Frequency</div>
+      <select class="finp" id="medFreq"><option>Once daily</option><option>Twice daily</option><option>Three times daily</option><option>Weekly</option><option>As needed</option></select>
+    </div>
+    <div class="field"><div class="flbl">Times</div>
+      <div class="time-chips">
+        <button class="tc" onclick="toggleTC(this,'Morning')">&#127749; Morning</button>
+        <button class="tc" onclick="toggleTC(this,'Afternoon')">&#9728;&#65039; Afternoon</button>
+        <button class="tc" onclick="toggleTC(this,'Evening')">&#127750; Evening</button>
+        <button class="tc" onclick="toggleTC(this,'Bedtime')">&#127769; Bedtime</button>
+      </div>
+    </div>
+    <div class="field"><div class="flbl">Status</div>
+      <select class="finp" id="medStatus"><option>Active</option><option>Inactive</option></select>
+    </div>
+    <div class="field"><div class="flbl">Notes</div><input class="finp" id="medNotes" placeholder="e.g. Take after meals"></div>
+    <div class="field"><div class="flbl">Tablets remaining</div><input class="finp" id="medStock" type="number" min="0" placeholder="e.g. 30"></div>
+    <button class="save-btn" onclick="saveMed()">Save Medicine</button>
+    <button class="del-btn" id="delMedBtn" style="display:none" onclick="deleteMed(document.getElementById('medId').value)">Delete</button>
+    <button class="del-btn" style="background:var(--bg);color:var(--tx2);border-color:var(--bd);margin-top:4px" onclick="closeModal('medModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ===== APPT MODAL ===== -->
+<div class="modal-bg" id="apptModal">
+  <div class="modal">
+    <div class="modal-title" id="apptModalTitle">Add Appointment</div>
+    <input type="hidden" id="apptId">
+    <div class="field"><div class="flbl">Title</div><input class="finp" id="apptTitle" placeholder="e.g. Annual Checkup"></div>
+    <div class="frow">
+      <div class="field" style="flex:1"><div class="flbl">Doctor</div><input class="finp" id="apptDoctor" placeholder="Dr. Name"></div>
+      <div class="field" style="flex:1"><div class="flbl">Specialty</div><input class="finp" id="apptSpec" placeholder="e.g. Cardiologist"></div>
+    </div>
+    <div class="frow">
+      <div class="field" style="flex:1"><div class="flbl">Date</div><input class="finp" id="apptDate" type="date"></div>
+      <div class="field" style="width:110px"><div class="flbl">Time</div><input class="finp" id="apptTime" type="time"></div>
+    </div>
+    <div class="field"><div class="flbl">Clinic / Hospital</div><input class="finp" id="apptClinic" placeholder="Clinic name"></div>
+    <div class="field"><div class="flbl">Status</div>
+      <select class="finp" id="apptStatus"><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select>
+    </div>
+    <div class="field"><div class="flbl">Notes</div><input class="finp" id="apptNotes" placeholder="Notes"></div>
+    <button class="save-btn" onclick="saveAppt()">Save Appointment</button>
+    <button class="del-btn" id="delApptBtn" style="display:none" onclick="deleteAppt(document.getElementById('apptId').value)">Delete</button>
+    <button class="del-btn" style="background:var(--bg);color:var(--tx2);border-color:var(--bd);margin-top:4px" onclick="closeModal('apptModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ===== HOME VISIT MODAL ===== -->
+<div class="modal-bg" id="visitModal">
+  <div class="modal">
+    <div class="modal-title" id="visitModalTitle">Book Home Visit</div>
+    <input type="hidden" id="visitId">
+    <div class="field"><div class="flbl">Medical staff</div>
+      <select class="finp" id="visitStaff"></select>
+    </div>
+    <div class="frow">
+      <div class="field" style="flex:1"><div class="flbl">Preferred date</div><input class="finp" id="visitDate" type="date"></div>
+      <div class="field" style="width:110px"><div class="flbl">Preferred time</div><input class="finp" id="visitTime" type="time"></div>
+    </div>
+    <div class="field"><div class="flbl">Home address</div><input class="finp" id="visitAddress" placeholder="House no., street, area, city"></div>
+    <div class="field"><div class="flbl">Contact number</div><input class="finp" id="visitPhone" type="tel" placeholder="Mobile number"></div>
+    <div class="field"><div class="flbl">Reason for visit</div><input class="finp" id="visitReason" placeholder="e.g. General checkup, BP check, injection"></div>
+    <div class="field"><div class="flbl">Status</div>
+      <select class="finp" id="visitStatus"><option>Upcoming</option><option>Completed</option><option>Cancelled</option></select>
+    </div>
+    <button class="save-btn" onclick="saveVisit()">Confirm Booking</button>
+    <button class="del-btn" id="delVisitBtn" style="display:none" onclick="deleteVisit(document.getElementById('visitId').value)">Cancel Visit</button>
+    <button class="del-btn" style="background:var(--bg);color:var(--tx2);border-color:var(--bd);margin-top:4px" onclick="closeModal('visitModal')">Close</button>
+  </div>
+</div>
+
+<!-- ===== PROFILE MODAL ===== -->
+<div class="pm-wrap" id="pmWrap">
+  <div class="pm-sheet">
+    <div class="pm-av" id="pmAv">H</div>
+    <div class="pm-name" id="pmNameTxt"></div>
+    <div class="pm-id" id="pmIdTxt"></div>
+    <div class="pm-stats">
+      <div class="pm-s"><div class="pm-sv" id="pmsMeds">0</div><div class="pm-sl">Medicines</div></div>
+      <div class="pm-s"><div class="pm-sv" id="pmsAppts">0</div><div class="pm-sl">Appointments</div></div>
+      <div class="pm-s"><div class="pm-sv" id="pmsDoses">0</div><div class="pm-sl">Doses Taken</div></div>
+    </div>
+    <button class="pm-row" onclick="closeProfile()">&#128138; &nbsp;Manage Medicines</button>
+    <button class="pm-row" onclick="closeProfile()">&#128197; &nbsp;Manage Appointments</button>
+    <button class="pm-row" onclick="printDoctorSummary()">&#128424; &nbsp;Print Doctor Summary</button>
+    <button class="pm-row danger" onclick="logout()">&#128682; &nbsp;Sign Out</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="healthModal">
+  <div class="modal">
+    <div class="modal-title">Emergency Medical Profile</div>
+    <div class="field"><div class="flbl">Blood group</div><input class="finp" id="healthBlood" placeholder="e.g. O+"></div>
+    <div class="field"><div class="flbl">Allergies</div><input class="finp" id="healthAllergies" placeholder="e.g. Penicillin"></div>
+    <div class="field"><div class="flbl">Medical conditions</div><input class="finp" id="healthConditions" placeholder="e.g. Diabetes"></div>
+    <div class="field"><div class="flbl">Emergency contact</div><input class="finp" id="healthContact" type="tel" placeholder="Name and phone number"></div>
+    <div class="field"><div class="flbl">Caregiver email or phone</div><input class="finp" id="caregiverContact" placeholder="For local demo alerts"></div>
+    <button class="save-btn" onclick="saveHealthProfile()">Save Profile</button>
+    <button class="del-btn" style="background:var(--bg);color:var(--tx2);border-color:var(--bd);margin-top:4px" onclick="closeModal('healthModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ===== CHATBOT ===== -->
+<button class="bot-fab" id="botFab" onclick="openChat()" title="Open MedBot" aria-label="Open MedBot">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 10H6v-2h12v2zm0-3H6V7h12v2z"/></svg>
+  <div class="bot-badge" id="botBadge"></div>
+</button>
+<div class="chat-wrap" id="chatWrap">
+  <div class="chat-panel">
+    <div class="chat-hdr">
+      <div class="chat-av">&#129302;</div>
+      <div class="chat-info"><div class="cn">MedBot &#8226; Help Center</div><div class="cs">&#128994; Online &#8226; Ask me anything</div></div>
+      <button class="chat-x" onclick="closeChat()">&#10005;</button>
+    </div>
+    <div class="msgs" id="chatMsgs"></div>
+    <div class="typing" id="botTyping"><div class="tbub"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+    <div class="qbtns" id="quickBtns"></div>
+    <div class="chat-inp-row">
+      <input class="chat-inp" id="chatInp" placeholder="Ask MedBot anything..." autocomplete="off" />
+      <button class="chat-send" onclick="sendMsg()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STORAGE KEYS =====
+const UK='mr_users', SK='mr_session';
+let CU=null; // current user object
+
+function getUsers(){return JSON.parse(localStorage.getItem(UK)||'{}');}
+function saveUsers(u){localStorage.setItem(UK,JSON.stringify(u));}
+function getSession(){return localStorage.getItem(SK);}
+function saveSession(id){localStorage.setItem(SK,id);}
+function clearSession(){localStorage.removeItem(SK);}
+
+// Per-user data helpers
+function getMeds(){if(!CU)return[];const u=getUsers()[CU.uid];return u?(u.meds||[]):[];}
+function setMeds(d){if(!CU)return;const us=getUsers();us[CU.uid].meds=d;saveUsers(us);}
+function getAppts(){if(!CU)return[];const u=getUsers()[CU.uid];return u?(u.appts||[]):[];}
+function setAppts(d){if(!CU)return;const us=getUsers();us[CU.uid].appts=d;saveUsers(us);}
+function getTaken(){if(!CU)return{};const u=getUsers()[CU.uid];return u?(u.taken||{}):{}; }
+function setTaken(d){if(!CU)return;const us=getUsers();us[CU.uid].taken=d;saveUsers(us);}
+function getHealth(){if(!CU)return{};const u=getUsers()[CU.uid];return u?(u.health||{}):{};}
+function setHealth(d){if(!CU)return;const us=getUsers();us[CU.uid].health=d;saveUsers(us);}
+function getVisits(){if(!CU)return[];const u=getUsers()[CU.uid];return u?(u.homeVisits||[]):[];}
+function setVisits(d){if(!CU)return;const us=getUsers();us[CU.uid].homeVisits=d;saveUsers(us);}
+
+// ===== HOME VISIT STAFF =====
+const STAFF=[
+  {id:'st1',name:'Dr. Ayesha Khan',role:'General Physician',emoji:'&#128658;',exp:'12 yrs exp',fee:'&#8377;800 visit fee',rating:'&#11088; 4.8'},
+  {id:'st2',name:'Nurse Ritu Sharma',role:'Registered Nurse &bull; Vitals &amp; Injections',emoji:'&#128105;&#8205;&#9877;&#65039;',exp:'8 yrs exp',fee:'&#8377;500 visit fee',rating:'&#11088; 4.9'},
+  {id:'st3',name:'Rahul Verma',role:'Physiotherapist',emoji:'&#129497;',exp:'6 yrs exp',fee:'&#8377;700 per session',rating:'&#11088; 4.7'},
+  {id:'st4',name:'Priya Nair',role:'Lab Technician &bull; Sample Collection',emoji:'&#129514;',exp:'5 yrs exp',fee:'&#8377;300 visit fee',rating:'&#11088; 4.8'},
+];
+function staffById(id){return STAFF.find(s=>s.id===id);}
+
+// ===== SEED DATA =====
+function seedData(){
+  if(!getMeds().length)setMeds([
+    {id:'s1',name:'Vitamin D3',dosage:'1000 IU',freq:'Once daily',times:['Morning'],status:'Active',notes:'Take with breakfast',color:'blue'},
+    {id:'s2',name:'Paracetamol',dosage:'500mg',freq:'Twice daily',times:['Morning','Evening'],status:'Active',notes:'After meals',color:'orange'},
+    {id:'s3',name:'Omega-3',dosage:'1000mg',freq:'Once daily',times:['Bedtime'],status:'Active',notes:'',color:'green'},
+  ]);
+  if(!getAppts().length)setAppts([
+    {id:'a1',title:'Annual Checkup',doctor:'Dr. Sharma',spec:'General Physician',date:'2026-09-20',time:'10:30',clinic:'City Health Clinic',status:'Upcoming',notes:''},
+    {id:'a2',title:'Dental Cleaning',doctor:'Dr. Mehta',spec:'Dentist',date:'2026-10-05',time:'14:00',clinic:'Smile Dental Care',status:'Upcoming',notes:''},
+  ]);
+}
+
+// ===== AUTH =====
+const otpStore={gmail:null,mobile:null};
+const timerIv={gmail:null,mobile:null};
+
+function buildOtpGrids(){ /* replaced by simple inputs */ }
+
+function switchTab(t){
+  document.getElementById('tGmail').classList.toggle('on',t==='gmail');
+  document.getElementById('tMobile').classList.toggle('on',t==='mobile');
+  document.getElementById('pGmail').classList.toggle('on',t==='gmail');
+  document.getElementById('pMobile').classList.toggle('on',t==='mobile');
+}
+
+function clearErr(id){const el=document.getElementById(id);if(el)el.textContent='';}
+
+function sendOtp(type,resend=false){
+  if(type==='gmail'){
+    const em=document.getElementById('gEmail').value.trim();
+    if(!resend&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){document.getElementById('gErr').textContent='Enter a valid email.';return;}
+    const otp=(Math.floor(100000+Math.random()*900000)).toString();
+    otpStore.gmail=otp;
+    document.getElementById('gOtpShow').textContent=otp;
+    document.getElementById('gSentTo').textContent=em;
+    document.getElementById('gs1').style.display='none';
+    document.getElementById('gs2').style.display='flex';
+    startTimer('gmail');
+    setTimeout(()=>{const el=document.getElementById('gOtpInp');if(el){el.value='';el.focus();}},300);
+  } else {
+    const ph=document.getElementById('mPhone').value.trim();
+    if(!resend&&!/^\d{7,12}$/.test(ph)){document.getElementById('mErr').textContent='Enter a valid number.';return;}
+    const otp=(Math.floor(100000+Math.random()*900000)).toString();
+    otpStore.mobile=otp;
+    document.getElementById('mOtpShow').textContent=otp;
+    document.getElementById('mSentTo').textContent=document.getElementById('cc').value+' '+ph;
+    document.getElementById('ms1').style.display='none';
+    document.getElementById('ms2').style.display='flex';
+    startTimer('mobile');
+    setTimeout(()=>{const el=document.getElementById('mOtpInp');if(el){el.value='';el.focus();}},300);
+  }
+}
+
+function startTimer(t){
+  if(timerIv[t])clearInterval(timerIv[t]);
+  let s=59;
+  const el=document.getElementById(t==='gmail'?'gTimer':'mTimer');
+  if(el)el.textContent=s;
+  timerIv[t]=setInterval(()=>{s--;if(el)el.textContent=s;if(s<=0)clearInterval(timerIv[t]);},1000);
+}
+
+function backStep(t){
+  if(t==='gmail'){document.getElementById('gs1').style.display='block';document.getElementById('gs2').style.display='none';}
+  else{document.getElementById('ms1').style.display='block';document.getElementById('ms2').style.display='none';}
+}
+
+function getOtpVal(t){
+  const el=document.getElementById(t==='gmail'?'gOtpInp':'mOtpInp');
+  return el ? el.value.toString().replace(/\D/g,'').slice(0,6) : '';
+}
+
+function verifyOtp(type){
+  const val=getOtpVal(type);
+  const errId=type==='gmail'?'gOtpErr':'mOtpErr';
+  if(val.length<6){document.getElementById(errId).textContent='Enter all 6 digits.';return;}
+  if(val!==otpStore[type]){document.getElementById(errId).textContent='Incorrect OTP. Try again.';return;}
+  document.getElementById(errId).textContent='';
+  const uid=type==='gmail'
+    ?document.getElementById('gEmail').value.trim().toLowerCase()
+    :document.getElementById('cc').value+document.getElementById('mPhone').value.trim();
+  const users=getUsers();
+  if(users[uid]){loginSuccess(uid,false);}
+  else{window._puid=uid;window._ptype=type;showNameForm();}
+}
+
+function showNameForm(){
+  document.getElementById('authForm').style.display='none';
+  document.getElementById('nameForm').style.display='flex';
+  setTimeout(()=>document.getElementById('uName').focus(),300);
+}
+
+function finishSignup(){
+  const name=document.getElementById('uName').value.trim();
+  if(!name){document.getElementById('uName').classList.add('bad');return;}
+  const uid=window._puid;
+  const users=getUsers();
+  users[uid]={uid,name,identifier:uid,type:window._ptype,createdAt:new Date().toISOString(),meds:[],appts:[],taken:{},homeVisits:[]};
+  saveUsers(users);
+  loginSuccess(uid,true);
+}
+
+function loginSuccess(uid,isNew){
+  saveSession(uid);
+  CU=getUsers()[uid];
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('appWrap').style.display='block';
+  seedData();
+  renderProfileChip();
+  render();
+  setTimeout(()=>{
+    showToast(isNew?'&#127881; Welcome, '+CU.name+'!':'&#128075; Welcome back, '+CU.name+'!');
+    if(!isNew)setTimeout(()=>document.getElementById('botBadge').classList.add('on'),3000);
+  },300);
+}
+
+function logout(){
+  clearSession();CU=null;
+  closeProfile();
+  document.getElementById('appWrap').style.display='none';
+  document.getElementById('authWrap').style.display='flex';
+  // reset auth
+  document.getElementById('authForm').style.display='block';
+  document.getElementById('nameForm').style.display='none';
+  document.getElementById('gs1').style.display='block';
+  document.getElementById('gs2').style.display='none';
+  document.getElementById('ms1').style.display='block';
+  document.getElementById('ms2').style.display='none';
+  document.getElementById('gEmail').value='';
+  document.getElementById('mPhone').value='';
+}
+
+function renderProfileChip(){
+  if(!CU)return;
+  document.getElementById('profAv').textContent=CU.name[0].toUpperCase();
+  document.getElementById('profName').textContent=CU.name.split(' ')[0];
+}
+
+function initApp(){
+  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  buildOtpGrids();
+  const sid=getSession();
+  if(sid){
+    const users=getUsers();
+    if(users[sid]){loginSuccess(sid,false);return;}
+  }
+  document.getElementById('authWrap').style.display='flex';
+}
+
+// ===== NAV =====
+const CLR=['blue','green','orange','red'];
+const uid2=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const TI={'Morning':'&#127749;','Afternoon':'&#9728;&#65039;','Evening':'&#127750;','Bedtime':'&#127769;'};
+const TH={'Morning':'8:00','Afternoon':'1:00','Evening':'6:00','Bedtime':'9:30'};
+const TA={'Morning':'AM','Afternoon':'PM','Evening':'PM','Bedtime':'PM'};
+
+let curPage='home';
+function gotoPage(p,el){
+  curPage=p;
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.getElementById('pg-'+p).classList.add('on');
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
+  document.getElementById('fabBtn').style.display=p==='analyze'?'none':'flex';
+  if(p==='appts'){document.getElementById('fabBtn').onclick=()=>openApptModal();}
+  else{document.getElementById('fabBtn').onclick=()=>openMedModal();}
+  render();
+}
+
+function callAmbulance(){
+  if(confirm('Call ambulance emergency number 108 now?')){
+    window.location.href='tel:108';
+  }
+}
+
+function findHospitals(fromChat=false){
+  const openMap=coords=>{
+    const query=coords
+      ?`https://www.google.com/maps/search/hospitals/@${coords.latitude},${coords.longitude},14z`
+      :'https://www.google.com/maps/search/hospitals+near+me';
+    window.open(query,'_blank','noopener');
+  };
+  if(!navigator.geolocation){
+    openMap(null);
+    return;
+  }
+  if(fromChat)botSay('I will open a map showing hospitals near your location. Please allow location access if your browser asks.');
+  navigator.geolocation.getCurrentPosition(
+    pos=>openMap(pos.coords),
+    ()=>openMap(null),
+    {enableHighAccuracy:true,timeout:8000,maximumAge:300000}
+  );
+}
+
+// ===== RENDER =====
+function render(){
+  if(!CU)return;
+  renderHome();renderMeds();renderAppts();renderHomeVisits();
+}
+
+function renderStaffList(){
+  const sl=document.getElementById('staffList');
+  if(!sl)return;
+  sl.innerHTML=STAFF.map(s=>`<div class="staff-item">
+    <div class="staff-av">${s.emoji}</div>
+    <div style="flex:1">
+      <div class="staff-name">${s.name}</div>
+      <div class="staff-meta">${s.role} &bull; ${s.exp} &bull; ${s.rating}</div>
+      <div class="staff-fee">${s.fee}</div>
+    </div>
+    <button class="staff-book-btn" onclick="openVisitModal(null,'${s.id}')">Book Visit</button>
+  </div>`).join('');
+}
+
+function renderHome(){
+  renderStaffList();
+  const meds=getMeds(),appts=getAppts(),today=todayStr(),taken=getTaken()[today]||{};
+  const active=meds.filter(m=>m.status==='Active');
+  const order=['Morning','Afternoon','Evening','Bedtime'];
+  const sched=[];
+  active.forEach(m=>(m.times||[]).forEach(t=>sched.push({m,t})));
+  sched.sort((a,b)=>order.indexOf(a.t)-order.indexOf(b.t));
+  const done=sched.filter(({m,t})=>taken[m.id+'_'+t]).length;
+  document.getElementById('s-meds').textContent=active.length;
+  document.getElementById('s-taken').textContent=done+'/'+sched.length;
+  document.getElementById('s-appts').textContent=appts.filter(a=>a.status==='Upcoming').length;
+  const sl=document.getElementById('schedList');
+  sl.innerHTML=sched.length?sched.map(({m,t})=>{
+    const k=m.id+'_'+t,tk=taken[k];
+    return `<div class="sched-card">
+      <div class="sched-time"><div class="sched-hr">${TH[t]}</div><div class="sched-ampm">${TA[t]}</div></div>
+      <div><div class="sched-name">${m.name}</div><div class="sched-info">${TI[t]} ${t} &bull; ${m.dosage||''}</div></div>
+      <button class="mark-btn${tk?' done':''}" onclick="markDose('${m.id}','${t}')">${tk?'&#10003; Done':'Mark'}</button>
+    </div>`;
+  }).join(''):'<div class="empty-state"><div class="empty-icon">&#128338;</div><div class="empty-txt">No medicines scheduled today</div></div>';
+  const upcoming=appts.filter(a=>a.status==='Upcoming'&&a.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+  const hal=document.getElementById('homeApptList');
+  hal.innerHTML=upcoming.length?upcoming.map(a=>apptCard(a)).join(''):'<div class="empty-state"><div class="empty-icon">&#128197;</div><div class="empty-txt">No upcoming appointments</div></div>';
+}
+
+function markDose(mid,t){
+  const today=todayStr(),taken=getTaken();
+  if(!taken[today])taken[today]={};
+  const k=mid+'_'+t;
+  let refillMessage='';
+  taken[today][k]=!taken[today][k];
+  if(!taken[today][k])delete taken[today][k];
+  const med=getMeds().find(m=>m.id===mid);
+  if(med&&taken[today][k]&&Number.isFinite(Number(med.stock))&&med.stock>0){
+    med.stock-=1;setMeds(getMeds());
+    if(med.stock<=5)refillMessage=' &#9888;&#65039; '+med.name+' has only '+med.stock+' left.';
+  }
+  setTaken(taken);render();
+  showToast(taken[today]?.[k]===undefined?'Dose unmarked':'&#10003; Dose marked!'+refillMessage);
+}
+
+function renderMeds(){
+  const meds=getMeds();
+  document.getElementById('medList').innerHTML=meds.length?meds.map(m=>
+    `<div class="med-card">
+      <div class="med-dot ${m.color||'blue'}"></div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700">${m.name}</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:2px">${m.dosage||''} &bull; ${m.freq} &bull; ${(m.times||[]).join(', ')}</div>
+        <div style="font-size:11px;color:var(--tx2);margin-top:2px">${m.notes||''}</div>
+        ${m.stock!==''&&m.stock!==undefined?`<div style="font-size:11px;margin-top:4px" class="${Number(m.stock)<=5?'stock-low':'stock-ok'}">&#128138; ${m.stock} tablets remaining${Number(m.stock)<=5?' - refill soon':''}</div>`:''}
+      </div>
+      <span class="badge ${m.status==='Active'?'upcoming':'completed'}">${m.status}</span>
+      <button style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx2);padding:4px" onclick="editMed('${m.id}')">&#9998;</button>
+    </div>`
+  ).join(''):'<div class="empty-state"><div class="empty-icon">&#128138;</div><div class="empty-txt">No medicines yet.<br>Tap + to add one!</div></div>';
+}
+
+function apptCard(a){
+  const dt=new Date(a.date+'T00:00:00');
+  const d=dt.toLocaleDateString('en-IN',{day:'numeric',month:'short'}).split(' ');
+  const fmt=a.date;
+  return `<div class="appt-card">
+    <div class="appt-row1">
+      <div>
+        <div class="appt-title">${a.title}</div>
+        <div class="appt-sub">${a.doctor||''} &bull; ${a.spec||''}</div>
+      </div>
+      <div style="text-align:center">
+        <div class="appt-date-badge">${d[0]}<br><span style="font-size:9px">${(d[1]||'').toUpperCase()}</span></div>
+      </div>
+    </div>
+    <div class="appt-loc">
+      <span>&#128205; ${a.clinic||''} ${a.time?'&bull; '+a.time:''}</span>
+      <span class="badge ${a.status==='Upcoming'?'upcoming':'completed'}">${a.status}</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button style="flex:1;padding:8px;border:1.5px solid var(--bd);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;background:none;color:var(--tx2);font-family:inherit" onclick="editAppt('${a.id}')">&#9998; Edit</button>
+    </div>
+  </div>`;
+}
+
+function renderAppts(){
+  const appts=getAppts();
+  document.getElementById('apptList').innerHTML=appts.length?appts.map(a=>apptCard(a)).join(''):'<div class="empty-state"><div class="empty-icon">&#128197;</div><div class="empty-txt">No appointments yet.<br>Tap + to add one!</div></div>';
+}
+
+function visitCard(v){
+  const s=staffById(v.staffId);
+  return `<div class="visit-card">
+    <div class="visit-row1">
+      <div>
+        <div class="visit-title">${s?s.name:'Medical staff'}</div>
+        <div class="visit-sub">${s?s.role:''} &bull; ${v.reason||'Home checkup'}</div>
+      </div>
+      <span class="badge ${v.status==='Upcoming'?'upcoming':'completed'}">${v.status}</span>
+    </div>
+    <div class="visit-loc">
+      <span>&#128205; ${v.address||'Address not set'} ${v.date?'&bull; '+v.date:''} ${v.time?' '+v.time:''}</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button style="flex:1;padding:8px;border:1.5px solid var(--bd);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;background:none;color:var(--tx2);font-family:inherit" onclick="editVisit('${v.id}')">&#9998; Edit</button>
+    </div>
+  </div>`;
+}
+
+function renderHomeVisits(){
+  const list=document.getElementById('homeVisitList');
+  if(!list)return;
+  const today=todayStr();
+  const upcoming=getVisits().filter(v=>v.status==='Upcoming'&&v.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+  list.innerHTML=upcoming.length?upcoming.map(v=>visitCard(v)).join(''):'<div class="empty-state"><div class="empty-icon">&#127968;</div><div class="empty-txt">No home visits booked.<br>Tap Book Visit above to schedule one.</div></div>';
+}
+
+// ===== MED MODAL =====
+function openMedModal(m=null){
+  document.getElementById('medModalTitle').textContent=m?'Edit Medicine':'Add Medicine';
+  document.getElementById('medId').value=m?m.id:'';
+  document.getElementById('medName').value=m?m.name:'';
+  document.getElementById('medDosage').value=m?m.dosage:'';
+  document.getElementById('medFreq').value=m?m.freq:'Once daily';
+  document.getElementById('medStatus').value=m?m.status:'Active';
+  document.getElementById('medNotes').value=m?m.notes:'';
+  document.getElementById('medStock').value=m&&m.stock!==undefined?m.stock:'';
+  document.getElementById('delMedBtn').style.display=m?'block':'none';
+  document.querySelectorAll('.tc').forEach(tc=>tc.classList.toggle('on',m?(m.times||[]).includes(tc.textContent.trim().split(' ').slice(-1)[0]):false));
+  openModal('medModal');
+}
+function editMed(id){const m=getMeds().find(x=>x.id===id);if(m)openMedModal(m);}
+function toggleTC(btn,t){btn.classList.toggle('on');}
+function saveMed(){
+  const name=document.getElementById('medName').value.trim();
+  if(!name){showToast('&#9888;&#65039; Enter medicine name');return;}
+  const existing=getMeds().find(m=>m.name.toLowerCase()===name.toLowerCase()&&m.id!==document.getElementById('medId').value);
+  if(existing&&!confirm(name+' is already in your medicines. Add it again?'))return;
+  const times=[...document.querySelectorAll('.tc.on')].map(tc=>tc.textContent.trim().split(' ').slice(-1)[0]);
+  if(!times.length){showToast('&#9888;&#65039; Select at least one time');return;}
+  const meds=getMeds(),id=document.getElementById('medId').value;
+  const stockValue=document.getElementById('medStock').value;
+  const med={id:id||uid2(),name,dosage:document.getElementById('medDosage').value,freq:document.getElementById('medFreq').value,times,status:document.getElementById('medStatus').value,notes:document.getElementById('medNotes').value,stock:stockValue===''?'':Math.max(0,Number(stockValue)),color:CLR[meds.length%4]};
+  if(id){const i=meds.findIndex(m=>m.id===id);meds[i]=med;}else{meds.push(med);}
+  setMeds(meds);closeModal('medModal');render();showToast(id?'&#9999;&#65039; Medicine updated!':'&#128138; Medicine added!');
+}
+function deleteMed(id){if(!confirm('Delete this medicine?'))return;setMeds(getMeds().filter(m=>m.id!==id));closeModal('medModal');render();showToast('&#128465;&#65039; Deleted');}
+
+// ===== APPT MODAL =====
+function openApptModal(a=null){
+  document.getElementById('apptModalTitle').textContent=a?'Edit Appointment':'Add Appointment';
+  document.getElementById('apptId').value=a?a.id:'';
+  document.getElementById('apptTitle').value=a?a.title:'';
+  document.getElementById('apptDoctor').value=a?a.doctor:'';
+  document.getElementById('apptSpec').value=a?a.spec:'';
+  document.getElementById('apptDate').value=a?a.date:'';
+  document.getElementById('apptTime').value=a?a.time:'';
+  document.getElementById('apptClinic').value=a?a.clinic:'';
+  document.getElementById('apptStatus').value=a?a.status:'Upcoming';
+  document.getElementById('apptNotes').value=a?a.notes:'';
+  document.getElementById('delApptBtn').style.display=a?'block':'none';
+  openModal('apptModal');
+}
+function editAppt(id){const a=getAppts().find(x=>x.id===id);if(a)openApptModal(a);}
+function saveAppt(){
+  const title=document.getElementById('apptTitle').value.trim();
+  if(!title){showToast('&#9888;&#65039; Enter appointment title');return;}
+  const appts=getAppts(),id=document.getElementById('apptId').value;
+  const appt={id:id||uid2(),title,doctor:document.getElementById('apptDoctor').value,spec:document.getElementById('apptSpec').value,date:document.getElementById('apptDate').value,time:document.getElementById('apptTime').value,clinic:document.getElementById('apptClinic').value,status:document.getElementById('apptStatus').value,notes:document.getElementById('apptNotes').value};
+  if(id){const i=appts.findIndex(a=>a.id===id);appts[i]=appt;}else{appts.push(appt);}
+  setAppts(appts);closeModal('apptModal');render();showToast(id?'&#9999;&#65039; Appointment updated!':'&#128197; Appointment added!');
+}
+function deleteAppt(id){if(!confirm('Delete this appointment?'))return;setAppts(getAppts().filter(a=>a.id!==id));closeModal('apptModal');render();showToast('&#128465;&#65039; Deleted');}
+
+// ===== HOME VISIT MODAL =====
+function openVisitModal(v=null,staffId=null){
+  const sel=document.getElementById('visitStaff');
+  sel.innerHTML=STAFF.map(s=>`<option value="${s.id}">${s.name} &bull; ${s.role}</option>`).join('');
+  document.getElementById('visitModalTitle').textContent=v?'Edit Home Visit':'Book Home Visit';
+  document.getElementById('visitId').value=v?v.id:'';
+  sel.value=v?v.staffId:(staffId||STAFF[0].id);
+  document.getElementById('visitDate').value=v?v.date:'';
+  document.getElementById('visitTime').value=v?v.time:'';
+  document.getElementById('visitAddress').value=v?v.address:'';
+  document.getElementById('visitPhone').value=v?v.phone:'';
+  document.getElementById('visitReason').value=v?v.reason:'';
+  document.getElementById('visitStatus').value=v?v.status:'Upcoming';
+  document.getElementById('delVisitBtn').style.display=v?'block':'none';
+  openModal('visitModal');
+}
+function editVisit(id){const v=getVisits().find(x=>x.id===id);if(v)openVisitModal(v);}
+function saveVisit(){
+  const staffId=document.getElementById('visitStaff').value;
+  const date=document.getElementById('visitDate').value;
+  const address=document.getElementById('visitAddress').value.trim();
+  if(!date){showToast('&#9888;&#65039; Choose a preferred date');return;}
+  if(!address){showToast('&#9888;&#65039; Enter the home address');return;}
+  const visits=getVisits(),id=document.getElementById('visitId').value;
+  const visit={id:id||uid2(),staffId,date,time:document.getElementById('visitTime').value,address,phone:document.getElementById('visitPhone').value.trim(),reason:document.getElementById('visitReason').value.trim(),status:document.getElementById('visitStatus').value};
+  if(id){const i=visits.findIndex(x=>x.id===id);visits[i]=visit;}else{visits.push(visit);}
+  setVisits(visits);closeModal('visitModal');render();
+  const s=staffById(staffId);
+  showToast(id?'&#9999;&#65039; Home visit updated!':'&#127968; '+(s?s.name:'Staff')+' will visit you on '+date+'!');
+}
+function deleteVisit(id){if(!confirm('Cancel this home visit?'))return;setVisits(getVisits().filter(v=>v.id!==id));closeModal('visitModal');render();showToast('&#128465;&#65039; Home visit cancelled');}
+
+function openHealthProfile(){
+  const h=getHealth();
+  document.getElementById('healthBlood').value=h.blood||'';
+  document.getElementById('healthAllergies').value=h.allergies||'';
+  document.getElementById('healthConditions').value=h.conditions||'';
+  document.getElementById('healthContact').value=h.contact||'';
+  document.getElementById('caregiverContact').value=h.caregiver||'';
+  openModal('healthModal');
+}
+function saveHealthProfile(){
+  setHealth({
+    blood:document.getElementById('healthBlood').value.trim(),
+    allergies:document.getElementById('healthAllergies').value.trim(),
+    conditions:document.getElementById('healthConditions').value.trim(),
+    contact:document.getElementById('healthContact').value.trim(),
+    caregiver:document.getElementById('caregiverContact').value.trim()
+  });
+  closeModal('healthModal');showToast('&#10003; Emergency profile saved');
+}
+function speakSchedule(){
+  if(!('speechSynthesis' in window)){showToast('Voice reminders are not supported in this browser');return;}
+  const meds=getMeds().filter(m=>m.status==='Active');
+  const text=meds.length?meds.map(m=>`${m.name}, ${m.dosage||''}, ${m.times.join(' and ')}`).join('. '):'You have no active medicines.';
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(`Today's medicine schedule. ${text}`));
+}
+function toggleLanguage(){
+  const label=document.getElementById('langLabel');
+  const hindi=label.textContent==='हिंदी';
+  label.textContent=hindi?'English':'हिंदी';
+  document.querySelector('.tools-title').textContent=hindi?'उपयोगी टूल्स':'Helpful tools';
+  showToast(hindi?'भाषा हिंदी में बदली गई':'Language changed to English');
+}
+function printDoctorSummary(){
+  if(!CU)return;
+  const meds=getMeds(),appts=getAppts(),h=getHealth(),visits=getVisits();
+  const w=window.open('','_blank','noopener');
+  if(!w){showToast('Allow pop-ups to create the doctor summary');return;}
+  const rows=meds.map(m=>'<tr><td>'+m.name+'</td><td>'+(m.dosage||'-')+'</td><td>'+m.freq+'</td><td>'+(m.times||[]).join(', ')+'</td><td>'+(m.stock===undefined||m.stock===''?'-':m.stock)+'</td></tr>').join('');
+  const appointments=appts.filter(a=>a.status==='Upcoming').map(a=>'<li>'+a.title+' - '+(a.date||'No date')+' '+(a.time||'')+' ('+(a.doctor||'Doctor not entered')+')</li>').join('');
+  const homeVisits=visits.filter(v=>v.status==='Upcoming').map(v=>{const s=staffById(v.staffId);return '<li>'+(s?s.name+' ('+s.role+')':'Medical staff')+' - '+(v.date||'No date')+' '+(v.time||'')+' at '+(v.address||'address not entered')+'</li>';}).join('');
+  w.document.open();
+  w.document.write('<html><head><title>MedReminder Health Summary</title><style>body{font-family:Arial;padding:28px;color:#111}h1{color:#4b3b91}table{width:100%;border-collapse:collapse;margin:12px 0 24px}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#f1effa}.note{color:#666;font-size:12px}</style></head><body><h1>MedReminder Health Summary</h1><p><b>Patient:</b> '+CU.name+'<br><b>Identifier:</b> '+CU.identifier+'</p><h2>Emergency information</h2><p><b>Blood group:</b> '+(h.blood||'-')+'<br><b>Allergies:</b> '+(h.allergies||'-')+'<br><b>Conditions:</b> '+(h.conditions||'-')+'<br><b>Emergency contact:</b> '+(h.contact||'-')+'</p><h2>Current medicines</h2><table><tr><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Times</th><th>Stock</th></tr>'+(rows||'<tr><td colspan="5">No medicines recorded</td></tr>')+'</table><h2>Upcoming appointments</h2><ul>'+(appointments||'<li>None recorded</li>')+'</ul><h2>Upcoming home visits</h2><ul>'+(homeVisits||'<li>None recorded</li>')+'</ul><p class="note">This summary is for discussion with a qualified healthcare professional and is not a diagnosis.</p><script>window.print();<\/script></body></html>');
+  w.document.close();
+}
+
+// ===== MODALS =====
+function openModal(id){document.getElementById(id).classList.add('on');}
+function closeModal(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');}));
+
+// ===== PROFILE =====
+function openProfile(){
+  if(!CU)return;
+  document.getElementById('pmAv').textContent=CU.name[0].toUpperCase();
+  document.getElementById('pmNameTxt').textContent=CU.name;
+  document.getElementById('pmIdTxt').textContent=CU.identifier;
+  const meds=getMeds(),appts=getAppts(),taken=getTaken();
+  document.getElementById('pmsMeds').textContent=meds.filter(m=>m.status==='Active').length;
+  document.getElementById('pmsAppts').textContent=appts.filter(a=>a.status==='Upcoming').length;
+  document.getElementById('pmsDoses').textContent=Object.values(taken).reduce((s,d)=>s+Object.keys(d).length,0);
+  document.getElementById('pmWrap').classList.add('on');
+}
+function closeProfile(){document.getElementById('pmWrap').classList.remove('on');}
+document.getElementById('pmWrap').addEventListener('click',e=>{if(e.target===document.getElementById('pmWrap'))closeProfile();});
+
+// ===== ANALYZE =====
+let _upFile=null;
+function azTab(p,el){document.querySelectorAll('.az-panel').forEach(x=>x.classList.remove('on'));document.getElementById('az-'+p).classList.add('on');document.querySelectorAll('.azt').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
+function handleUpload(inp){
+  const f=inp.files[0];if(!f)return;
+  _upFile=f;
+  const prev=document.getElementById('upPreview'),img=document.getElementById('upImg'),st=document.getElementById('ocrStatus'),btn=document.getElementById('ocrBtn');
+  st.className='ocr-status';st.textContent='';
+  if(f.type==='application/pdf'){prev.style.display='block';img.style.display='none';st.className='ocr-status warn';st.textContent='PDF uploaded. Use image for best OCR results.';btn.style.display='flex';return;}
+  const r=new FileReader();
+  r.onload=e=>{img.src=e.target.result;img.style.display='block';prev.style.display='block';btn.style.display='flex';st.className='ocr-status loading';st.textContent='Image ready. Tap Auto-Read to scan.';}
+  r.readAsDataURL(f);
+}
+async function runOCR(){
+  const btn=document.getElementById('ocrBtn'),st=document.getElementById('ocrStatus');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>&nbsp; Scanning...';
+  st.className='ocr-status loading';st.textContent='Sending to OCR engine...';
+  try{
+    const img=document.getElementById('upImg');
+    const c=document.createElement('canvas');const cx=c.getContext('2d');
+    const sc=Math.min(1600/img.naturalWidth,1600/img.naturalHeight,2);
+    c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+    cx.drawImage(img,0,0,c.width,c.height);
+    const id=cx.getImageData(0,0,c.width,c.height),d=id.data;
+    for(let i=0;i<d.length;i+=4){let g=.299*d[i]+.587*d[i+1]+.114*d[i+2];g=Math.min(255,Math.max(0,(g-128)*1.6+128));d[i]=d[i+1]=d[i+2]=g;}
+    cx.putImageData(id,0,0);
+    const b64=c.toDataURL('image/jpeg',.95);
+    const fd=new FormData();
+    fd.append('base64Image',b64);fd.append('language','eng');fd.append('isTable','true');
+    fd.append('detectOrientation','true');fd.append('scale','true');fd.append('OCREngine','2');
+    const res=await fetch('https://api.ocr.space/parse/image',{method:'POST',headers:{apikey:'helloworld'},body:fd});
+    const json=await res.json();
+    let text='';
+    if(json.ParsedResults&&json.ParsedResults.length)text=json.ParsedResults.map(r=>r.ParsedText).join('\n');
+    if(!text||text.trim().length<10){
+      fd.set('OCREngine','1');
+      const r2=await fetch('https://api.ocr.space/parse/image',{method:'POST',headers:{apikey:'helloworld'},body:fd});
+      const j2=await r2.json();
+      if(j2.ParsedResults&&j2.ParsedResults.length)text=j2.ParsedResults.map(r=>r.ParsedText).join('\n');
+    }
+    if(!text||text.trim().length<10){st.className='ocr-status warn';st.textContent='Could not read values. Please ensure image is clear and try again or enter values manually.';btn.disabled=false;btn.innerHTML='&#129514; Retry Auto-Read';return;}
+    const found=parseOCR(text);
+    if(Object.keys(found).length){
+      Object.entries(found).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});
+      st.className='ocr-status ok';st.textContent='\u2713 Auto-filled '+Object.keys(found).length+' value(s)! Review below and tap Analyze.';
+    } else {
+      st.className='ocr-status warn';st.textContent='No standard lab values detected. Try a clearer photo of a printed report, or enter values manually.';
+    }
+    btn.disabled=false;btn.innerHTML='&#129514; Auto-Read Values';
+  }catch(e){st.className='ocr-status warn';st.textContent='Network error. Check connection and try again.';btn.disabled=false;btn.innerHTML='&#129514; Retry';}
+}
+function parseOCR(text){
+  const found={},t=text.replace(/\n/g,' ');
+  const P=[
+    ['t-b12',/(?:b12|vitamin\s*b[- ]?12|cobalamin)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-vitd',/(?:25[- ]?oh[- ]?(?:vit(?:amin)?[- ]?)?d|vitamin[- ]?d3?|vit[- ]?d)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-tsh',/\btsh\b[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-t4',/(?:free\s*t4|ft4)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-t3',/(?:free\s*t3|ft3)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-hb',/(?:h(?:a?e?m(?:oglobin)?)|\bhb(?!a))[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-iron',/(?:ferritin|serum\s*iron)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-ca',/calcium[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-fbs',/(?:fasting[^\d]*(?:blood|glucose|sugar|plasma)|fbs|fbg)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-hba1c',/hba?1c[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-ppbs',/(?:pp(?:bs)?|post[- ]?(?:prandial|meal))[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-chol',/(?:total\s*cholesterol)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-trig',/triglycerides?[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-ldl',/\bldl[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-hdl',/\bhdl[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-sgpt',/(?:sgpt|\balt\b)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-sgot',/(?:sgot|\bast\b)[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-bili',/bilirubin[^\d]*(\d+(?:\.\d+)?)/i],
+    ['t-creat',/creatinine[^\d]*(\d+(?:\.\d+)?)/i],
+  ];
+  P.forEach(([id,re])=>{const m=t.match(re);if(m&&m[1]){const v=parseFloat(m[1]);if(!isNaN(v)&&v>0&&v<100000)found[id]=v;}});
+  return found;
+}
+const AZ_RULES=[
+  {id:'t-b12',name:'Vitamin B12',unit:'pg/mL',lo:187,hi:883,low:'B12 Deficiency',high:'Excess B12',med:'Methylcobalamin 1500mcg daily'},
+  {id:'t-vitd',name:'Vitamin D3',unit:'ng/mL',lo:30,hi:100,low:'Vitamin D Deficiency',high:'Vitamin D Toxicity',med:'Vitamin D3 60,000 IU weekly x 8 weeks'},
+  {id:'t-hb',name:'Hemoglobin',unit:'g/dL',lo:12,hi:17,low:'Anemia',high:'Polycythemia',med:'Ferrous Sulfate 200mg + Folic Acid'},
+  {id:'t-iron',name:'Ferritin',unit:'ng/mL',lo:12,hi:300,low:'Iron Deficiency',high:'Iron Overload',med:'Ferrous Sulfate 200mg daily'},
+  {id:'t-tsh',name:'TSH',unit:'uIU/mL',lo:0.35,hi:4.94,low:'Hyperthyroidism',high:'Hypothyroidism',med:'Consult endocrinologist'},
+  {id:'t-fbs',name:'Fasting Sugar',unit:'mg/dL',lo:70,hi:99,low:'Hypoglycemia',high:'Diabetes risk',med:'Diet control + consult diabetologist'},
+  {id:'t-hba1c',name:'HbA1c',unit:'%',lo:0,hi:5.7,low:'Normal',high:'Pre/Diabetes',med:'Metformin (consult doctor)'},
+  {id:'t-chol',name:'Cholesterol',unit:'mg/dL',lo:0,hi:200,low:'Normal',high:'Hypercholesterolemia',med:'Atorvastatin 10mg + Omega-3'},
+  {id:'t-ldl',name:'LDL',unit:'mg/dL',lo:0,hi:100,low:'Normal',high:'High LDL Risk',med:'Rosuvastatin 10mg daily'},
+  {id:'t-hdl',name:'HDL',unit:'mg/dL',lo:40,hi:999,low:'Low HDL Risk',high:'Normal',med:'Exercise + Omega-3 supplements'},
+  {id:'t-sgpt',name:'SGPT/ALT',unit:'U/L',lo:7,hi:56,low:'Normal',high:'Liver Stress',med:'Silymarin (Milk Thistle) + avoid alcohol'},
+  {id:'t-creat',name:'Creatinine',unit:'mg/dL',lo:0.6,hi:1.2,low:'Normal',high:'Kidney concern',med:'Consult nephrologist + increase water intake'},
+];
+function analyzeReport(){
+  const results=[];
+  AZ_RULES.forEach(r=>{
+    const el=document.getElementById(r.id),val=el?parseFloat(el.value):NaN;
+    if(isNaN(val)||!el.value)return;
+    let status,cls,med=r.med;
+    if(val<r.lo){status=`Low (${val} < ${r.lo}) — ${r.low}`;cls='warn';}
+    else if(val>r.hi){status=`High (${val} > ${r.hi}) — ${r.high}`;cls='danger';}
+    else{status=`Normal (${val} ${r.unit})`;cls='ok';med='Keep it up! Maintain a healthy lifestyle.';}
+    results.push({name:r.name,val,unit:r.unit,status,cls,med,id:r.id});
+  });
+  const el=document.getElementById('azResults');
+  if(!results.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">&#129300;</div><div class="empty-txt">Enter at least one lab value<br>above and tap Analyze.</div></div>';return;}
+  el.innerHTML=results.map(r=>
+    `<div class="result-card ${r.cls==='ok'?'':''+r.cls}">
+      <div class="rc-title">${r.name}</div>
+      <div class="rc-status ${r.cls}">${r.cls==='ok'?'\u2714':'\u26a0'} ${r.status}</div>
+      <div class="rc-med">&#128138; ${r.med}</div>
+      ${r.cls!=='ok'?`<button class="add-rem-btn" onclick="addMedFromAnalysis('${r.name}','${r.med}')">+ Add to Reminders</button>`:''}
+    </div>`
+  ).join('');
+}
+function addMedFromAnalysis(name,med){
+  const meds=getMeds();
+  meds.push({id:uid2(),name:med.split('(')[0].trim(),dosage:med.match(/(\d+\s*(?:mg|IU|mcg|%|ml))/i)?.[1]||'',freq:'Once daily',times:['Morning'],status:'Active',notes:'Added from report: '+name,color:CLR[meds.length%4]});
+  setMeds(meds);render();showToast('&#128138; Added to reminders!');
+}
+
+// ===== CHATBOT =====
+let chatInit=false;
+function openChat(){
+  document.getElementById('chatWrap').classList.add('on');
+  document.getElementById('botBadge').classList.remove('on');
+  if(!chatInit){chatInit=true;setTimeout(()=>botSay('Hello! I\'m **MedBot** &#129302;, your health assistant.\n\nI can help you:\n&#128138; Add medicines\n&#128197; Show appointments\n&#128337; Today\'s schedule\n&#10067; Answer health questions\n\nWhat can I help you with?',true),400);}
+}
+function closeChat(){document.getElementById('chatWrap').classList.remove('on');}
+document.getElementById('chatWrap').addEventListener('click',e=>{if(e.target===document.getElementById('chatWrap'))closeChat();});
+document.getElementById('chatInp').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
+function sendMsg(){
+  const inp=document.getElementById('chatInp'),t=inp.value.trim();if(!t)return;
+  inp.value='';addMsg('u',t);document.getElementById('quickBtns').innerHTML='';
+  setTimeout(()=>processMsg(t),400);
+}
+function sendQuick(t){addMsg('u',t);document.getElementById('quickBtns').innerHTML='';setTimeout(()=>processMsg(t),400);}
+function addMsg(role,text){
+  const el=document.getElementById('chatMsgs'),div=document.createElement('div');
+  div.className='msg '+role;
+  const content=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+  div.innerHTML=`<div class="mbub">${content}</div><div class="mtime">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+  el.appendChild(div);el.scrollTop=el.scrollHeight;
+}
+function botSay(txt,qb=false,delay=700){
+  const t=document.getElementById('botTyping');t.classList.add('on');
+  document.getElementById('chatMsgs').scrollTop=9999;
+  setTimeout(()=>{t.classList.remove('on');addMsg('b',txt);if(qb)defQB();},delay);
+}
+function defQB(){
+  document.getElementById('quickBtns').innerHTML=[
+    "Today's schedule","Add medicine","My appointments","Book home visit","Nearby hospitals","Health tip"
+  ].map(b=>`<button class="qb" onclick="sendQuick('${b}')">${b}</button>`).join('');
+}
+let _addStep=null,_addData={};
+function processMsg(t){
+  const l=t.toLowerCase();
+  if(_addStep){handleAddStep(t);return;}
+  if(/^(hi|hello|hey|hii|namaste)/.test(l)){botSay('Hey! &#128075; How can I help you today?',true);return;}
+  if(/ambulance|emergency|urgent|call.*108/.test(l)){botSay('&#128680; **Emergency:** If someone is in immediate danger, call an ambulance now.');document.getElementById('quickBtns').innerHTML="<button class='qb' onclick='callAmbulance()'>&#128222; Call 108</button>";return;}
+  if(/home visit|staff.*home|nurse|checkup at home|doctor at home|come home|visit.*home/.test(l)){
+    botSay('Sure! You can book a **doctor, nurse, physiotherapist or lab technician** to visit your home for a checkup, vitals, or sample collection.',true);
+    document.getElementById('quickBtns').innerHTML="<button class='qb' onclick=\"closeChat();openVisitModal();\">&#127968; Book a home visit</button>";
+    return;
+  }
+  if(/hospital|clinic|medical center|near me|location|directions/.test(l)){
+    if(/doctor|specialist|department/.test(l)){botSay('Nearby hospital departments:\\n\\n&#127973; **City General Hospital:** General Physician, Cardiologist, Neurologist\\n&#127973; **CarePlus Medical Center:** Pediatrician, Gynecologist, Dermatologist\\n&#127973; **LifeLine Clinic:** General Physician, Orthopedic Doctor\\n\\nTap **Nearby hospitals** on Home to open a map.');}
+    else findHospitals(true);
+    return;
+  }
+  if(/today|schedule|what.*take|my meds now/.test(l)){showSched();return;}
+  if(/miss|forgot|skip/.test(l)){botSay('**Missed a dose?**\n\n&#128338; If within 2 hrs: take it now.\n&#9200;&#65039; If near next dose: skip it.\n&#10060; Never double dose!\n\nWant to see your schedule?');document.getElementById('quickBtns').innerHTML="<button class='qb' onclick='sendQuick(\"show schedule\")'>Show schedule</button>";return;}
+  if(/add.*med|new.*med|remind.*take/.test(l)){startAdd();return;}
+  if(/what is|what's|uses?|use of|side effect|interaction|medicine.*(help|info)|tablet|capsule/.test(l)){botSay('I can help with general medicine information, but I cannot diagnose or replace a doctor. Tell me the medicine name and what you want to know (uses, side effects, or precautions).');return;}
+  if(/list.*med|my meds|show.*med|medicines?/.test(l)){showMedList();return;}
+  if(/appoint|doctor|visit/.test(l)){showApptList();return;}
+  if(/tip|advice|healthy/.test(l)){const tips=['&#128167; Drink 8 glasses of water daily','&#127869;&#65039; Take medicines after meals unless told otherwise','&#9728;&#65039; Get 15 min of sunlight for Vitamin D','&#127808; Eat iron-rich foods if Hb is low','&#128337; Take medicines at the same time every day'];botSay('&#128161; **Tip:** '+tips[Math.floor(Math.random()*tips.length)]);document.getElementById('quickBtns').innerHTML="<button class='qb' onclick='sendQuick(\"health tip\")'>Another tip</button>";return;}
+  if(/thank/.test(l)){botSay('You\'re welcome! &#128522; Stay healthy!',true);return;}
+  // Value interpretation
+  const vm=l.match(/(b12|vitamin d|tsh|hemoglobin|hb|sugar|cholesterol)[^\d]*(\d+(?:\.\d+)?)/);
+  if(vm){interpretVal(vm[1],parseFloat(vm[2]));return;}
+  botSay('I didn\'t quite get that. Try asking about your schedule, medicines, or appointments!',true);
+}
+function showSched(){
+  const meds=getMeds(),today=todayStr(),taken=getTaken()[today]||{};
+  const sched=[];meds.filter(m=>m.status==='Active').forEach(m=>(m.times||[]).forEach(t=>sched.push({m,t})));
+  if(!sched.length){botSay('You have no medicines scheduled today!');return;}
+  const done=sched.filter(({m,t})=>taken[m.id+'_'+t]).length;
+  let msg='**Today\'s Schedule:**\n\n';
+  sched.forEach(({m,t})=>{const k=m.id+'_'+t;msg+=`${TI[t]} **${m.name}** (${m.dosage||''}) - ${TH[t]}${TA[t]}\n${taken[k]?'\u2713 Taken':'\u25cf Pending'}\n\n`;});
+  msg+=`**Progress: ${done}/${sched.length} done ${done===sched.length?'\ud83c\udf89':'\ud83d\ude0a'}`;
+  botSay(msg);
+}
+function showMedList(){
+  const meds=getMeds();
+  if(!meds.length){botSay('No medicines added yet!');document.getElementById('quickBtns').innerHTML="<button class='qb' onclick='sendQuick(\"add medicine\")'>Add medicine</button>";return;}
+  let msg='**Your Medicines:**\n\n';
+  meds.filter(m=>m.status==='Active').forEach(m=>{msg+=`&#128138; **${m.name}** - ${m.dosage||''}\n${m.times.join(', ')} \u2022 ${m.freq}\n\n`;});
+  botSay(msg);
+}
+function showApptList(){
+  const appts=getAppts().filter(a=>a.status==='Upcoming');
+  if(!appts.length){botSay('No upcoming appointments.');return;}
+  let msg='**Upcoming Appointments:**\n\n';
+  appts.forEach(a=>{msg+=`&#129516; **${a.title}**\n${a.doctor||''} \u2022 ${a.date}${a.time?' at '+a.time:''}\n${a.clinic||''}\n\n`;});
+  botSay(msg);
+}
+function interpretVal(test,val){
+  const r=AZ_RULES.find(x=>x.id.includes(test.replace(/\s/g,'').replace('vitamin d','vitd').replace('vitamin b12','b12').replace('hemoglobin','hb').replace('cholesterol','chol').replace('sugar','fbs')));
+  if(!r){botSay(`I found **${val}** but I need to know the test name. e.g. "My B12 is 180"."`);return;}
+  const status=val<r.lo?'Low':val>r.hi?'High':'Normal',emoji=status==='Normal'?'&#128994;':status==='High'?'&#128308;':'&#128993;';
+  botSay(`**${r.name} = ${val} ${r.unit}**\nNormal: ${r.lo}\u2013${r.hi} ${r.unit}\n\n${emoji} **${status}**${status!=='Normal'?' \u2014 '+r[status==='Low'?'low':'high']:''}\n\n&#128138; ${status==='Normal'?'Keep it up!':r.med}`);
+}
+function startAdd(){
+  _addStep='name';_addData={};
+  botSay('Sure! What is the **name** of the medicine?');
+}
+function handleAddStep(text){
+  if(_addStep==='name'){_addData.name=text;_addStep='dosage';botSay(`Got it! What is the **dosage**? (e.g. 500mg)`);return;}
+  if(_addStep==='dosage'){_addData.dosage=text;_addStep='time';botSay('When should you take it?');document.getElementById('quickBtns').innerHTML=['Morning','Evening','Bedtime','Morning & Evening','All times'].map(b=>`<button class='qb' onclick='sendQuick("${b}")'>${b}</button>`).join('');return;}
+  if(_addStep==='time'){
+    const tmap={'morning':['Morning'],'evening':['Evening'],'bedtime':['Bedtime'],'morning & evening':['Morning','Evening'],'all times':['Morning','Afternoon','Evening','Bedtime']};
+    _addData.times=tmap[text.toLowerCase()]||['Morning'];
+    const meds=getMeds();
+    const addedName=_addData.name;
+    meds.push({id:uid2(),name:addedName,dosage:_addData.dosage,freq:'Once daily',times:_addData.times,status:'Active',notes:'',color:CLR[meds.length%4]});
+    setMeds(meds);render();_addStep=null;_addData={};
+    botSay(`&#127881; **${addedName}** added to your medicines!\nYou\'ll see it on the Home tab.`,true);
+    showToast('&#128138; Medicine added via MedBot!');
+    return;
+  }
+}
+
+// ===== TOAST =====
+function showToast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ===== INIT =====
+initApp();
+</script>
+</body>
+</html>
